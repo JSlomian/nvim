@@ -1,0 +1,5 @@
+vim.keymap.set({'n','v'}, 'j', '<left>')
+vim.keymap.set({'n','v'}, 'k', '<down>')
+vim.keymap.set({'n','v'}, 'l', '<up>')
+vim.keymap.set({'n','v'}, ';', '<right>')
+vim.keymap.set({'n','v'}, '\'', '<right>')
