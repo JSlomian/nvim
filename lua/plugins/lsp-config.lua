@@ -15,6 +15,7 @@ return {
   },
   {
     "neovim/nvim-lspconfig",
+    dependencies = { "saghen/blink.cmp" },
     config = function()
       vim.diagnostic.config({
         virtual_text = {
@@ -35,9 +36,11 @@ return {
         signs = false,
       })
       local lspconfig = require("lspconfig")
-      lspconfig.lua_ls.setup({})
-      lspconfig.ts_ls.setup({})
+      local capabilities = require("blink.cmp").get_lsp_capabilities()
+      lspconfig.lua_ls.setup({capabilities = capabilities})
+      lspconfig.ts_ls.setup({capabilities = capabilities})
       lspconfig.jsonls.setup({
+        capabilities = capabilities,
         settings = {
           json = {
             schemas = {
@@ -50,16 +53,21 @@ return {
         },
       })
       lspconfig.eslint.setup({
+capabilities = capabilities,
         settings = {
           workingDirectory = { mode = "location" },
           codeAction = { disableRuleComment = { enable = true }, showDocumentation = { enable = true } },
           format = true,
         },
       })
-      --lspconfig.php
-      vim.keymap.set("n", "K", vim.lsp.buf.hover, {})
-      vim.keymap.set("n", "gd", vim.lsp.buf.definition, {})
-      vim.keymap.set({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, {})
+      lspconfig.phpactor.setup({capabilities = capabilities})
+      vim.keymap.set("n", "K", vim.lsp.buf.hover, { desc = "Documentation" })
+      vim.keymap.set("n", "<C-k>", vim.lsp.buf.signature_help, { desc = "Help" })
+      vim.keymap.set("n", "gd", vim.lsp.buf.definition, { desc = "Definition" })
+      vim.keymap.set("n", "gD", vim.lsp.buf.declaration, { desc = "Declaration" })
+      vim.keymap.set("n", "gi", vim.lsp.buf.implementation, { desc = "Implementation" })
+      vim.keymap.set("n", "<leader>cn", vim.lsp.buf.rename, { desc = "Rename" })
+      vim.keymap.set({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, { desc = "Code Action" })
     end,
   },
 }

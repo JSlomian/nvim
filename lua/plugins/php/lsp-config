@@ -1,0 +1,66 @@
+
+-- Extends the base lspconfig setup specifically for PHP
+return {
+  "neovim/nvim-lspconfig",
+  ft = "php",                          -- load when editing PHP
+  dependencies = { "hrsh7th/cmp-nvim-lsp" },
+  config = function()
+    local lspconfig = require("lspconfig")
+    local util = require("lspconfig.util")
+
+    -- Capabilities (works alongside your base setup)
+    local capabilities = vim.lsp.protocol.make_client_capabilities()
+    pcall(function()
+      capabilities = require("cmp_nvim_lsp").default_capabilities(capabilities)
+    end)
+
+    -- Set up Phpactor LSP (does not touch your base)
+    lspconfig.phpactor.setup({
+      capabilities = capabilities,
+      filetypes = { "php" },
+      root_dir = util.root_pattern(
+        "composer.json",
+        ".phpactor.json", ".phpactor.json.dist",
+        "phpstan.neon", "psalm.xml",
+        ".git"
+      ),
+      init_options = {
+        -- We’ll run phpstan/psalm via none-ls (to avoid duplicate diagnostics)
+        ["language_server_phpstan.enabled"] = false,
+        ["language_server_psalm.enabled"]   = false,
+      },
+    })
+
+    -- Inject PHP/Phpactor-specific keymaps & behavior without changing your base:
+    local grp = vim.api.nvim_create_augroup("PhpactorInject", { clear = true })
+    vim.api.nvim_create_autocmd("LspAttach", {
+      group = grp,
+      callback = function(ev)
+        local client = vim.lsp.get_client_by_id(ev.data.client_id)
+        if not client or client.name ~= "phpactor" then return end
+
+        local buf = ev.buf
+        local function map(mode, lhs, rhs, desc)
+          vim.keymap.set(mode, lhs, rhs, { buffer = buf, silent = true, desc = desc })
+        end
+
+        -- Add/override any PHP-specific mappings you want:
+        map("n", "K", vim.lsp.buf.hover, "PHP Hover")
+        map("n", "gd", vim.lsp.buf.definition, "Go to definition")
+        map({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, "Code action")
+
+        -- If you use phpactor (plugin/binary) extra commands:
+        -- map("n", "<leader>pc", ":PhpactorContextMenu<CR>", "Phpactor: context menu")
+        -- map("n", "<leader>pn", ":PhpactorClassNew<CR>", "Phpactor: new class")
+
+        -- Make <leader>gf prefer php-cs-fixer via none-ls for PHP buffers:
+        map("n", "<leader>gf", function()
+          vim.lsp.buf.format({
+            filter = function(c) return c.name == "null-ls" end,
+            timeout_ms = 5000,
+          })
+        end, "Format (php-cs-fixer)")
+      end,
+    })
+  end,
+}
