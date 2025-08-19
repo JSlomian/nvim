@@ -1,5 +1,8 @@
 return {
   {
+    "b0o/schemastore.nvim",
+  },
+  {
     "williamboman/mason.nvim",
     config = function()
       require("mason").setup()
@@ -37,30 +40,26 @@ return {
       })
       local lspconfig = require("lspconfig")
       local capabilities = require("blink.cmp").get_lsp_capabilities()
-      lspconfig.lua_ls.setup({capabilities = capabilities})
-      lspconfig.ts_ls.setup({capabilities = capabilities})
+      lspconfig.lua_ls.setup({ capabilities = capabilities })
+      lspconfig.ts_ls.setup({ capabilities = capabilities })
       lspconfig.jsonls.setup({
         capabilities = capabilities,
         settings = {
           json = {
-            schemas = {
-              {
-                fileMatch = { "package.json" },
-                url = "https://json.schemastore.org/package.json",
-              },
-            },
+            schemas = require("schemastore").json.schemas(),
+            validate = { enable = true },
           },
         },
       })
       lspconfig.eslint.setup({
-capabilities = capabilities,
+        capabilities = capabilities,
         settings = {
           workingDirectory = { mode = "location" },
           codeAction = { disableRuleComment = { enable = true }, showDocumentation = { enable = true } },
           format = true,
         },
       })
-      lspconfig.phpactor.setup({capabilities = capabilities})
+      lspconfig.phpactor.setup({ capabilities = capabilities })
       vim.keymap.set("n", "K", vim.lsp.buf.hover, { desc = "Documentation" })
       vim.keymap.set("n", "<C-k>", vim.lsp.buf.signature_help, { desc = "Help" })
       vim.keymap.set("n", "gd", vim.lsp.buf.definition, { desc = "Definition" })
