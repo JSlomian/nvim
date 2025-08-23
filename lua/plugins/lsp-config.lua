@@ -1,5 +1,8 @@
 return {
 	{
+		"b0o/schemastore.nvim",
+	},
+	{
 		"williamboman/mason.nvim",
 		config = function()
 			require("mason").setup()
@@ -77,12 +80,8 @@ return {
 				capabilities = capabilities,
 				settings = {
 					json = {
-						schemas = {
-							{
-								fileMatch = { "package.json" },
-								url = "https://json.schemastore.org/package.json",
-							},
-						},
+						schemas = require("schemastore").json.schemas(),
+						validate = { enable = true },
 					},
 				},
 			})
@@ -142,9 +141,6 @@ return {
 					},
 				},
 			})
-			vim.keymap.set("n", "K", vim.lsp.buf.hover, { desc = "Documentation" })
-			vim.keymap.set("n", "<C-k>", vim.lsp.buf.signature_help, { desc = "Help" })
-			vim.keymap.set("n", "gd", vim.lsp.buf.definition, { desc = "Definition" })
 			-- vim.keymap.set("n", "gd", function()
 			--   vim.lsp.buf.definition()
 			--   vim.defer_fn(function()
@@ -169,6 +165,9 @@ return {
 			--     end
 			--   end, 80)
 			-- end, { buffer = true, desc = "Definition" })
+			vim.keymap.set("n", "K", vim.lsp.buf.hover, { desc = "Documentation" })
+			vim.keymap.set("n", "<C-k>", vim.lsp.buf.signature_help, { desc = "Help" })
+			vim.keymap.set("n", "gd", vim.lsp.buf.definition, { desc = "Definition" })
 			vim.keymap.set("n", "gD", vim.lsp.buf.declaration, { desc = "Declaration" })
 			vim.keymap.set("n", "gi", vim.lsp.buf.implementation, { desc = "Implementation" })
 			vim.keymap.set("n", "<leader>cn", vim.lsp.buf.rename, { desc = "Rename" })
