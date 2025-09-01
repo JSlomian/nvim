@@ -72,10 +72,10 @@ return {
 			})
 
 			-- Vue language server (Volar)
-			lspconfig.vue_ls.setup({
-				capabilities = capabilities,
-				filetypes = { "vue" },
-			})
+			-- lspconfig.vue_ls.setup({
+				-- capabilities = capabilities,
+				-- filetypes = { "vue" },
+			-- })
 			lspconfig.jsonls.setup({
 				capabilities = capabilities,
 				settings = {
