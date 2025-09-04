@@ -42,7 +42,16 @@ return {
 			local util = require("lspconfig.util")
 			local capabilities = require("blink.cmp").get_lsp_capabilities()
 			lspconfig.lua_ls.setup({ capabilities = capabilities })
-			lspconfig.ts_ls.setup({
+			local vue_plugin_path = util.path.join(
+				vim.fn.stdpath("data"),
+				"mason",
+				"packages",
+				"vue-language-server",
+				"node_modules",
+				"@vue",
+				"language-server"
+			)
+			lspconfig.vtsls.setup({
 				capabilities = capabilities,
 				filetypes = {
 					"javascript",
@@ -51,31 +60,70 @@ return {
 					"typescriptreact",
 					"vue",
 				},
-				init_options = {
-					plugins = {
-						{
-							name = "@vue/typescript-plugin",
-							-- use the copy that Mason installed:
-							location = util.path.join(
-								vim.fn.stdpath("data"),
-								"mason",
-								"packages",
-								"vue-language-server",
-								"node_modules",
-								"@vue",
-								"language-server"
-							),
-							languages = { "vue" },
+				on_attach = function(client, bufnr)
+					if vim.bo[bufnr].filetype == "vue" then
+						client.server_capabilities.semanticTokensProvider = nil
+					end
+				end,
+				-- on_attach = function(client, bufnr)
+				-- 	if vim.bo[bufnr].filetype == "vue" then
+				-- 		client.server_capabilities.documentFormattingProvider = false
+				-- 		client.server_capabilities.semanticTokensProvider = nil
+				-- 		client.server_capabilities.hoverProvider = false
+				-- 		client.server_capabilities.signatureHelpProvider = nil
+				-- 		client.server_capabilities.completionProvider = nil
+				-- 		-- (Volar will provide these)
+				-- 	end
+				-- end,
+				-- init_options = {
+				-- 	plugins = {
+				-- 		{
+				-- 			name = "@vue/typescript-plugin",
+				-- 			-- use the copy that Mason installed:
+				-- 			location = util.path.join(
+				-- 				vim.fn.stdpath("data"),
+				-- 				"mason",
+				-- 				"packages",
+				-- 				"vue-language-server",
+				-- 				"node_modules",
+				-- 				"@vue",
+				-- 				"language-server"
+				-- 			),
+				-- 			languages = { "vue" },
+				-- 		},
+				-- 	},
+				-- },
+				settings = {
+					vtsls = {
+						tsserver = {
+							globalPlugins = {
+								{
+									name = "@vue/typescript-plugin",
+									location = vue_plugin_path,
+									languages = { "vue" },
+									configNamespace = "typescript",
+								},
+							},
 						},
 					},
 				},
 			})
 
 			-- Vue language server (Volar)
-			-- lspconfig.vue_ls.setup({
-				-- capabilities = capabilities,
-				-- filetypes = { "vue" },
-			-- })
+			lspconfig.vue_ls.setup({
+				capabilities = capabilities,
+				filetypes = { "vue" },
+				init_options = {
+					typescript = {
+						-- Prefer project TS; fall back to Mason if you want
+						tsdk = vim.fn.getcwd() .. "/node_modules/typescript/lib",
+						-- tsdk = vim.fn.stdpath('data') .. '/mason/packages/typescript-language-server/node_modules/typescript/lib',
+					},
+				},
+				on_attach = function(client)
+					client.server_capabilities.semanticTokensProvider = nil
+				end,
+			})
 			lspconfig.jsonls.setup({
 				capabilities = capabilities,
 				settings = {
@@ -171,7 +219,14 @@ return {
 			vim.keymap.set("n", "gD", vim.lsp.buf.declaration, { desc = "Declaration" })
 			vim.keymap.set("n", "gi", vim.lsp.buf.implementation, { desc = "Implementation" })
 			vim.keymap.set("n", "<leader>cn", vim.lsp.buf.rename, { desc = "Rename" })
-			vim.keymap.set({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, { desc = "Code Action" })
+			vim.keymap.set({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, { desc = "Code Action" }) -- float
+			vim.keymap.set("n", "gl", vim.diagnostic.open_float, { silent = true })
+			-- or:
+			vim.keymap.set("n", "<leader>e", vim.diagnostic.open_float, { silent = true })
+
+			-- navigate
+			vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, { silent = true })
+			vim.keymap.set("n", "]d", vim.diagnostic.goto_next, { silent = true })
 		end,
 	},
 }
