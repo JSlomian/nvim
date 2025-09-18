@@ -12,7 +12,7 @@ return {
 		"williamboman/mason-lspconfig.nvim",
 		config = function()
 			require("mason-lspconfig").setup({
-				ensure_installed = { "lua_ls", "ts_ls", "jsonls", "eslint" },
+				ensure_installed = { "lua_ls", "jsonls", "eslint" },
 			})
 		end,
 	},
@@ -60,42 +60,39 @@ return {
 					"typescriptreact",
 					"vue",
 				},
-				on_attach = function(client, bufnr)
-					if vim.bo[bufnr].filetype == "vue" then
-						client.server_capabilities.semanticTokensProvider = nil
-					end
-				end,
 				-- on_attach = function(client, bufnr)
+				-- 	-- Let Volar own semantic tokens in .vue to avoid races & extra work
 				-- 	if vim.bo[bufnr].filetype == "vue" then
-				-- 		client.server_capabilities.documentFormattingProvider = false
-				-- 		client.server_capabilities.semanticTokensProvider = nil
-				-- 		client.server_capabilities.hoverProvider = false
-				-- 		client.server_capabilities.signatureHelpProvider = nil
-				-- 		client.server_capabilities.completionProvider = nil
-				-- 		-- (Volar will provide these)
+				-- 		pcall(vim.lsp.semantic_tokens.stop, bufnr, client.id)
+				-- 		vim.b[bufnr].vtsls_semantic_tokens_disabled = true
 				-- 	end
 				-- end,
-				-- init_options = {
-				-- 	plugins = {
-				-- 		{
-				-- 			name = "@vue/typescript-plugin",
-				-- 			-- use the copy that Mason installed:
-				-- 			location = util.path.join(
-				-- 				vim.fn.stdpath("data"),
-				-- 				"mason",
-				-- 				"packages",
-				-- 				"vue-language-server",
-				-- 				"node_modules",
-				-- 				"@vue",
-				-- 				"language-server"
-				-- 			),
-				-- 			languages = { "vue" },
-				-- 		},
-				-- 	},
-				-- },
+				root_dir = util.root_pattern("tsconfig.json", "package.json", ".git"),
 				settings = {
 					vtsls = {
 						tsserver = {
+							maxTsServerMemory = 4096,
+							useSyntaxServer = "auto",
+							watchOptions = {
+								watchFile = "useFsEvents",
+								watchDirectory = "useFsEvents",
+								fallbackPolling = "dynamicPriority",
+								synchronousWatchDirectory = false,
+							},
+							typescript = {
+								preferences = {
+									includePackageJsonAutoImports = "off",
+								},
+								suggest = {
+									completeFunctionCalls = true,
+									autoImports = true,
+								},
+							},
+							javascript = {
+								preferences = {
+									includePackageJsonAutoImports = "off",
+								},
+							},
 							globalPlugins = {
 								{
 									name = "@vue/typescript-plugin",
@@ -109,7 +106,6 @@ return {
 				},
 			})
 
-			-- Vue language server (Volar)
 			lspconfig.vue_ls.setup({
 				capabilities = capabilities,
 				filetypes = { "vue" },
@@ -120,9 +116,10 @@ return {
 						-- tsdk = vim.fn.stdpath('data') .. '/mason/packages/typescript-language-server/node_modules/typescript/lib',
 					},
 				},
-				on_attach = function(client)
-					client.server_capabilities.semanticTokensProvider = nil
-				end,
+				-- on_attach = function(client)
+				-- 	client.server_capabilities.semanticTokensProvider =
+				-- 		client.server_capabilities.semanticTokensProvider
+				-- end,
 			})
 			lspconfig.jsonls.setup({
 				capabilities = capabilities,
@@ -181,6 +178,9 @@ return {
 				end,
 				settings = {
 					intelephense = {
+            environment = {
+              phpVersion = "8.3"
+            },
 						completion = {
 							callSnippet = "Replace",
 							insertFullyQualifiedNames = false, -- show FQN in menu, insert short name
@@ -188,6 +188,10 @@ return {
 						},
 					},
 				},
+			})
+			lspconfig.psalm.setup({
+				root_dir = util.root_pattern("psalm.xml", "psalm.xml.dist"),
+				autostart = false, -- default
 			})
 			-- vim.keymap.set("n", "gd", function()
 			--   vim.lsp.buf.definition()
@@ -218,6 +222,7 @@ return {
 			vim.keymap.set("n", "gd", vim.lsp.buf.definition, { desc = "Definition" })
 			vim.keymap.set("n", "gD", vim.lsp.buf.declaration, { desc = "Declaration" })
 			vim.keymap.set("n", "gi", vim.lsp.buf.implementation, { desc = "Implementation" })
+			-- vim.keymap.set("n", "gr", vim.lsp.buf.references, { desc = "Go to References" })
 			vim.keymap.set("n", "<leader>cn", vim.lsp.buf.rename, { desc = "Rename" })
 			vim.keymap.set({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, { desc = "Code Action" }) -- float
 			vim.keymap.set("n", "gl", vim.diagnostic.open_float, { silent = true })
