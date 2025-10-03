@@ -24,11 +24,11 @@ return {
 				-- python = { "black" },
 				php = {
 					"easy-coding-standard", -- ECS
-					"pint", -- Laravel Pint
-					"php-cs-fixer", -- PHP CS Fixer
-					"phpcbf", -- PHP_CodeSniffer
+					-- "pint", -- Laravel Pint
+					-- "php-cs-fixer", -- PHP CS Fixer
+					-- "phpcbf", -- PHP_CodeSniffer
 				},
-        blade = { "blade-formatter" }, -- Laravel Blade
+				blade = { "blade-formatter" }, -- Laravel Blade
 				twig = { "twig-cs-fixer" },
 				c = { "clang-format" },
 				cpp = { "clang-format" },
@@ -40,6 +40,29 @@ return {
 				bash = { "shfmt" },
 				toml = { "taplo" },
 			},
+			formatters = {
+				prettier = { prefer_local = "node_modules/.bin" },
+				["easy-coding-standard"] = {
+					command = "vendor/bin/ecs",
+					args = { "check", "--fix", "--no-interaction", "--quiet", "$FILENAME" },
+					stdin = false,
+				},
+				-- phpcbf = { prefer_local = "vendor/bin" },
+				-- pint = { prefer_local = "vendor/bin" },
+				-- ["php-cs-fixer"] = { prefer_local = "vendor/bin" },
+			},
 		})
 	end,
+	vim.keymap.set("n", "<leader>cl", function()
+		vim.lsp.buf.code_action({
+			apply = true,
+			context = { only = { "source.fixAll.eslint" } },
+		})
+	end, { desc = "ESLint: Fix all (LSP)" }),
+	vim.keymap.set("n", "<leader>cf", function()
+		require("conform").format({ async = true, lsp_fallback = true })
+	end, { desc = "Format file" }),
+	vim.keymap.set("n", "<M-f>", function()
+		require("conform").format({ async = true, lsp_fallback = true })
+	end, { desc = "Format file" }),
 }

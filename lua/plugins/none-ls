@@ -87,27 +87,27 @@ return {
         -- }),
       },
     })
-    vim.keymap.set("n", "<leader>cf", function()
-      vim.lsp.buf.format({
-        async = true,
-        filter = function(client)
-          return client.name == "null-ls"
-        end,
-      })
-    end, { desc = "Format file" })
-    vim.keymap.set("n", "<M-f>", function()
-      vim.lsp.buf.format({
-        async = true,
-        filter = function(client)
-          return client.name == "null-ls"
-        end,
-      })
-    end, { desc = "Format file" })
-    vim.keymap.set("n", "<leader>cl", function()
-      vim.lsp.buf.code_action({
-        apply = true,
-        context = { only = { "source.fixAll.eslint" } },
-      })
-    end, { desc = "ESLint: Fix all (LSP)" })
+    -- vim.keymap.set("n", "<leader>cf", function()
+    --   vim.lsp.buf.format({
+    --     async = true,
+    --     filter = function(client)
+    --       return client.name == "null-ls"
+    --     end,
+    --   })
+    -- end, { desc = "Format file" })
+    -- vim.keymap.set("n", "<M-f>", function()
+    --   vim.lsp.buf.format({
+    --     async = true,
+    --     filter = function(client)
+    --       return client.name == "null-ls"
+    --     end,
+    --   })
+    -- end, { desc = "Format file" })
+    -- vim.keymap.set("n", "<leader>cl", function()
+    --   vim.lsp.buf.code_action({
+    --     apply = true,
+    --     context = { only = { "source.fixAll.eslint" } },
+    --   })
+    -- end, { desc = "ESLint: Fix all (LSP)" })
   end,
 }

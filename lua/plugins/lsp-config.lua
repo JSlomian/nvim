@@ -3,6 +3,9 @@ return {
 		"b0o/schemastore.nvim",
 	},
 	{
+		"mason-org/mason-registry",
+	},
+	{
 		"williamboman/mason.nvim",
 		config = function()
 			require("mason").setup()
@@ -16,183 +19,188 @@ return {
 			})
 		end,
 	},
-	{
-		"neovim/nvim-lspconfig",
-		dependencies = { "saghen/blink.cmp" },
-		config = function()
-			vim.diagnostic.config({
-				virtual_text = {
-					severity = {
-						min = vim.diagnostic.severity.HINT, -- show all
-					},
-					spacing = 2,
-					format = function(diagnostic)
-						local icons = {
-							[vim.diagnostic.severity.ERROR] = "󰅚",
-							[vim.diagnostic.severity.WARN] = "",
-							[vim.diagnostic.severity.INFO] = "",
-							[vim.diagnostic.severity.HINT] = "󰌶",
-						}
-						return string.format("%s %s", icons[diagnostic.severity], diagnostic.message)
-					end,
-				},
-				signs = false,
-			})
-			local lspconfig = require("lspconfig")
-			local util = require("lspconfig.util")
-			local capabilities = require("blink.cmp").get_lsp_capabilities()
-			lspconfig.lua_ls.setup({ capabilities = capabilities })
-			local vue_plugin_path = util.path.join(
-				vim.fn.stdpath("data"),
-				"mason",
-				"packages",
-				"vue-language-server",
-				"node_modules",
-				"@vue",
-				"language-server"
-			)
-			lspconfig.vtsls.setup({
-				capabilities = capabilities,
-				filetypes = {
-					"javascript",
-					"javascriptreact",
-					"typescript",
-					"typescriptreact",
-					"vue",
-				},
-				-- on_attach = function(client, bufnr)
-				-- 	-- Let Volar own semantic tokens in .vue to avoid races & extra work
-				-- 	if vim.bo[bufnr].filetype == "vue" then
-				-- 		pcall(vim.lsp.semantic_tokens.stop, bufnr, client.id)
-				-- 		vim.b[bufnr].vtsls_semantic_tokens_disabled = true
-				-- 	end
-				-- end,
-				root_dir = util.root_pattern("tsconfig.json", "package.json", ".git"),
-				settings = {
-					vtsls = {
-						tsserver = {
-							maxTsServerMemory = 4096,
-							useSyntaxServer = "auto",
-							watchOptions = {
-								watchFile = "useFsEvents",
-								watchDirectory = "useFsEvents",
-								fallbackPolling = "dynamicPriority",
-								synchronousWatchDirectory = false,
-							},
-							typescript = {
-								preferences = {
-									includePackageJsonAutoImports = "off",
-								},
-								suggest = {
-									completeFunctionCalls = true,
-									autoImports = true,
-								},
-							},
-							javascript = {
-								preferences = {
-									includePackageJsonAutoImports = "off",
-								},
-							},
-							globalPlugins = {
-								{
-									name = "@vue/typescript-plugin",
-									location = vue_plugin_path,
-									languages = { "vue" },
-									configNamespace = "typescript",
-								},
-							},
-						},
-					},
-				},
-			})
-
-			lspconfig.vue_ls.setup({
-				capabilities = capabilities,
-				filetypes = { "vue" },
-				init_options = {
-					typescript = {
-						-- Prefer project TS; fall back to Mason if you want
-						tsdk = vim.fn.getcwd() .. "/node_modules/typescript/lib",
-						-- tsdk = vim.fn.stdpath('data') .. '/mason/packages/typescript-language-server/node_modules/typescript/lib',
-					},
-				},
-				-- on_attach = function(client)
-				-- 	client.server_capabilities.semanticTokensProvider =
-				-- 		client.server_capabilities.semanticTokensProvider
-				-- end,
-			})
-			lspconfig.jsonls.setup({
-				capabilities = capabilities,
-				settings = {
-					json = {
-						schemas = require("schemastore").json.schemas(),
-						validate = { enable = true },
-					},
-				},
-			})
-			lspconfig.eslint.setup({
-				capabilities = capabilities,
-				settings = {
-					workingDirectory = { mode = "location" },
-					codeAction = { disableRuleComment = { enable = true }, showDocumentation = { enable = true } },
-					format = true,
-				},
-			})
+	-- {
+	-- 	"neovim/nvim-lspconfig",
+	-- 	dependencies = { "saghen/blink.cmp" },
+	-- 	config = function()
+			-- vim.diagnostic.config({
+			-- 	virtual_text = {
+			-- 		severity = {
+			-- 			min = vim.diagnostic.severity.HINT, -- show all
+			-- 		},
+			-- 		spacing = 2,
+			-- 		format = function(diagnostic)
+			-- 			local icons = {
+			-- 				[vim.diagnostic.severity.ERROR] = "󰅚",
+			-- 				[vim.diagnostic.severity.WARN] = "",
+			-- 				[vim.diagnostic.severity.INFO] = "",
+			-- 				[vim.diagnostic.severity.HINT] = "󰌶",
+			-- 			}
+			-- 			return string.format("%s %s", icons[diagnostic.severity], diagnostic.message)
+			-- 		end,
+			-- 	},
+			-- 	signs = false,
+			-- })
+			-- local mason_registry = require("mason-registry")
+			-- local util = require("lspconfig.util")
+			-- local capabilities = require("blink.cmp").get_lsp_capabilities()
+			-- local vue_plugin_path = vim.fs.path.join(
+			-- 	vim.fn.stdpath("data"),
+			-- 	"mason",
+			-- 	"packages",
+			-- 	"vue-language-server",
+			-- 	"node_modules",
+			-- 	"@vue",
+			-- 	"language-server"
+			-- )
+			-- vim.lsp.config.vtsls = {
+			-- 	capabilities = capabilities,
+			-- 	filetypes = {
+			-- 		"javascript",
+			-- 		"javascriptreact",
+			-- 		"typescript",
+			-- 		"typescriptreact",
+			-- 		"vue",
+			-- 	},
+			-- 	-- on_attach = function(client, bufnr)
+			-- 	-- 	-- Let Volar own semantic tokens in .vue to avoid races & extra work
+			-- 	-- 	if vim.bo[bufnr].filetype == "vue" then
+			-- 	-- 		pcall(vim.lsp.semantic_tokens.stop, bufnr, client.id)
+			-- 	-- 		vim.b[bufnr].vtsls_semantic_tokens_disabled = true
+			-- 	-- 	end
+			-- 	-- end,
+			-- 	root_dir = util.root_pattern("tsconfig.json", "package.json", ".git"),
+			-- 	settings = {
+			-- 		vtsls = {
+			-- 			tsserver = {
+			-- 				maxTsServerMemory = 4096,
+			-- 				useSyntaxServer = "auto",
+			-- 				watchOptions = {
+			-- 					watchFile = "useFsEvents",
+			-- 					watchDirectory = "useFsEvents",
+			-- 					fallbackPolling = "dynamicPriority",
+			-- 					synchronousWatchDirectory = false,
+			-- 				},
+			-- 				typescript = {
+			-- 					preferences = {
+			-- 						includePackageJsonAutoImports = "off",
+			-- 					},
+			-- 					suggest = {
+			-- 						completeFunctionCalls = true,
+			-- 						autoImports = true,
+			-- 					},
+			-- 				},
+			-- 				javascript = {
+			-- 					preferences = {
+			-- 						includePackageJsonAutoImports = "off",
+			-- 					},
+			-- 				},
+			-- 				globalPlugins = {
+			-- 					{
+			-- 						name = "@vue/typescript-plugin",
+			-- 						location = vue_plugin_path,
+			-- 						languages = { "vue" },
+			-- 						configNamespace = "typescript",
+			-- 					},
+			-- 				},
+			-- 			},
+			-- 		},
+			-- 	},
+			-- }
+			-- vim.lsp.start(vim.lsp.config.vtsls)
+			--
+			-- vim.lsp.config.vue_ls = {
+			-- 	capabilities = capabilities,
+			-- 	filetypes = { "vue" },
+			-- 	init_options = {
+			-- 		typescript = {
+			-- 			-- Prefer project TS; fall back to Mason if you want
+			-- 			tsdk = vim.fn.getcwd() .. "/node_modules/typescript/lib",
+			-- 			-- tsdk = vim.fn.stdpath('data') .. '/mason/packages/typescript-language-server/node_modules/typescript/lib',
+			-- 		},
+			-- 	},
+			-- 	-- on_attach = function(client)
+			-- 	-- 	client.server_capabilities.semanticTokensProvider =
+			-- 	-- 		client.server_capabilities.semanticTokensProvider
+			-- 	-- end,
+			-- }
+			-- vim.lsp.start(vim.lsp.config.vue_ls)
+			-- vim.lsp.config.jsonls = {
+			-- 	capabilities = capabilities,
+			-- 	settings = {
+			-- 		json = {
+			-- 			schemas = require("schemastore").json.schemas(),
+			-- 			validate = { enable = true },
+			-- 		},
+			-- 	},
+			-- }
+			-- vim.lsp.start(vim.lsp.config.jsonls)
+			-- vim.lsp.config.eslint = {
+			-- 	capabilities = capabilities,
+			-- 	settings = {
+			-- 		workingDirectory = { mode = "location" },
+			-- 		codeAction = { disableRuleComment = { enable = true }, showDocumentation = { enable = true } },
+			-- 		format = true,
+			-- 	},
+			-- }
+			-- vim.lsp.start(vim.lsp.config.eslint)
 			-- Phpactor: refactor & code actions only
-			lspconfig.phpactor.setup({
-				cmd = { "phpactor", "language-server", "-vvv" },
-				filetypes = { "php" },
-				capabilities = capabilities,
-				on_attach = function(client)
-					-- turn off features we prefer Intelephense to handle
-					client.server_capabilities.hoverProvider = false
-					client.server_capabilities.documentSymbolProvider = false
-					client.server_capabilities.referencesProvider = false
-					client.server_capabilities.completionProvider = false
-					client.server_capabilities.definitionProvider = false
-					client.server_capabilities.typeDefinitionProvider = false
-					client.server_capabilities.documentFormattingProvider = false
-					-- leave codeActionProvider and renameProvider enabled
-				end,
-				settings = {
-					phpactor = {
-						language_server_phpstan = { enabled = false },
-						language_server_psalm = { enabled = false },
-						inlayHints = {
-							enable = true,
-							parameterHints = true,
-							typeHints = true,
-						},
-					},
-				},
-			})
+			-- vim.lsp.config.phpactor = {
+			-- 	cmd = { "phpactor", "language-server", "-vvv" },
+			-- 	filetypes = { "php" },
+			-- 	capabilities = capabilities,
+			-- 	on_attach = function(client)
+			-- 		-- turn off features we prefer Intelephense to handle
+			-- 		client.server_capabilities.hoverProvider = false
+			-- 		client.server_capabilities.documentSymbolProvider = false
+			-- 		client.server_capabilities.referencesProvider = false
+			-- 		client.server_capabilities.completionProvider = false
+			-- 		client.server_capabilities.definitionProvider = false
+			-- 		client.server_capabilities.typeDefinitionProvider = false
+			-- 		client.server_capabilities.documentFormattingProvider = false
+			-- 		-- leave codeActionProvider and renameProvider enabled
+			-- 	end,
+			-- 	settings = {
+			-- 		phpactor = {
+			-- 			language_server_phpstan = { enabled = false },
+			-- 			language_server_psalm = { enabled = false },
+			-- 			inlayHints = {
+			-- 				enable = true,
+			-- 				parameterHints = true,
+			-- 				typeHints = true,
+			-- 			},
+			-- 		},
+			-- 	},
+			-- }
+			-- vim.lsp.start(vim.lsp.config.phpactor)
 
-			-- Intelephense: completions, hover, diagnostics, symbols
-			lspconfig.intelephense.setup({
-				cmd = { "intelephense", "--stdio" },
-				filetypes = { "php" },
-				capabilities = capabilities,
-				on_attach = function(client)
-					-- disable workspace symbols if you want Phpactor to handle them
-					client.server_capabilities.workspaceSymbolProvider = false
-				end,
-				settings = {
-					intelephense = {
-            environment = {
-              phpVersion = "8.3"
-            },
-						completion = {
-							callSnippet = "Replace",
-							insertFullyQualifiedNames = false, -- show FQN in menu, insert short name
-							fullyQualifyGlobalConstantsAndFunctions = true,
-						},
-					},
-				},
-			})
-			lspconfig.psalm.setup({
-				root_dir = util.root_pattern("psalm.xml", "psalm.xml.dist"),
-				autostart = false, -- default
-			})
+			-- -- Intelephense: completions, hover, diagnostics, symbols
+			-- vim.lsp.config.intelephense = {
+			-- 	cmd = { "intelephense", "--stdio" },
+			-- 	filetypes = { "php" },
+			-- 	capabilities = capabilities,
+			-- 	on_attach = function(client)
+			-- 		-- disable workspace symbols if you want Phpactor to handle them
+			-- 		client.server_capabilities.workspaceSymbolProvider = false
+			-- 	end,
+			-- 	settings = {
+			-- 		intelephense = {
+			-- 			environment = {
+			-- 				phpVersion = "8.3",
+			-- 			},
+			-- 			completion = {
+			-- 				callSnippet = "Replace",
+			-- 				insertFullyQualifiedNames = false, -- show FQN in menu, insert short name
+			-- 				fullyQualifyGlobalConstantsAndFunctions = true,
+			-- 			},
+			-- 		},
+			-- 	},
+			-- }
+			-- vim.lsp.start(vim.lsp.config.intelephense)
+			-- lspconfig.psalm.setup({
+			-- 	root_dir = util.root_pattern("psalm.xml", "psalm.xml.dist"),
+			-- 	autostart = false, -- default
+			-- })
 			-- vim.keymap.set("n", "gd", function()
 			--   vim.lsp.buf.definition()
 			--   vim.defer_fn(function()
@@ -217,21 +225,21 @@ return {
 			--     end
 			--   end, 80)
 			-- end, { buffer = true, desc = "Definition" })
-			vim.keymap.set("n", "K", vim.lsp.buf.hover, { desc = "Documentation" })
-			vim.keymap.set("n", "<C-k>", vim.lsp.buf.signature_help, { desc = "Help" })
-			vim.keymap.set("n", "gd", vim.lsp.buf.definition, { desc = "Definition" })
-			vim.keymap.set("n", "gD", vim.lsp.buf.declaration, { desc = "Declaration" })
-			vim.keymap.set("n", "gi", vim.lsp.buf.implementation, { desc = "Implementation" })
-			-- vim.keymap.set("n", "gr", vim.lsp.buf.references, { desc = "Go to References" })
-			vim.keymap.set("n", "<leader>cn", vim.lsp.buf.rename, { desc = "Rename" })
-			vim.keymap.set({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, { desc = "Code Action" }) -- float
-			vim.keymap.set("n", "gl", vim.diagnostic.open_float, { silent = true })
-			-- or:
-			vim.keymap.set("n", "<leader>e", vim.diagnostic.open_float, { silent = true })
-
-			-- navigate
-			vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, { silent = true })
-			vim.keymap.set("n", "]d", vim.diagnostic.goto_next, { silent = true })
-		end,
-	},
+			-- vim.keymap.set("n", "K", vim.lsp.buf.hover, { desc = "Documentation" })
+			-- vim.keymap.set("n", "<C-k>", vim.lsp.buf.signature_help, { desc = "Help" })
+			-- vim.keymap.set("n", "gd", vim.lsp.buf.definition, { desc = "Definition" })
+			-- vim.keymap.set("n", "gD", vim.lsp.buf.declaration, { desc = "Declaration" })
+			-- vim.keymap.set("n", "gi", vim.lsp.buf.implementation, { desc = "Implementation" })
+			-- -- vim.keymap.set("n", "gr", vim.lsp.buf.references, { desc = "Go to References" })
+			-- vim.keymap.set("n", "<leader>cn", vim.lsp.buf.rename, { desc = "Rename" })
+			-- vim.keymap.set({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, { desc = "Code Action" }) -- float
+			-- vim.keymap.set("n", "gl", vim.diagnostic.open_float, { silent = true })
+			-- -- or:
+			-- vim.keymap.set("n", "<leader>e", vim.diagnostic.open_float, { silent = true })
+			--
+			-- -- navigate
+			-- vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, { silent = true })
+			-- vim.keymap.set("n", "]d", vim.diagnostic.goto_next, { silent = true })
+	-- 	end,
+	-- },
 }
